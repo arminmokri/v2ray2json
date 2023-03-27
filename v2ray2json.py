@@ -59,6 +59,20 @@ class DomainStrategy:
     IpOnDemand = "IpOnDemand"
 
 
+class Fingerprint:
+    randomized = "randomized"
+    randomizedalpn = "randomizedalpn"
+    randomizednoalpn = "randomizednoalpn"
+    firefox_auto = "firefox_auto"
+    chrome_auto = "chrome_auto"
+    ios_auto = "ios_auto"
+    android_11_okhttp = "android_11_okhttp"
+    edge_auto = "edge_auto"
+    safari_auto = "safari_auto"
+    _360_auto = "360_auto"
+    qq_auto = "qq_auto"
+
+
 class LogBean:
     access: str
     error: str
@@ -545,67 +559,64 @@ class OutboundBean:
         ) -> str:
             sni = ""
             self.network = transport
-            match self.network:
-                case "tcp":
-                    tcpSetting = self.TcpSettingsBean()
-                    if headerType == HTTP:
-                        tcpSetting.header.type = HTTP
-                        if host != "" or path != "":
-                            requestObj = self.TcpSettingsBean.HeaderBean.RequestBean()
-                            requestObj.headers.Host = (
-                                "" if host == None else host.split(",")
-                            )
-                            requestObj.path = "" if path == None else path.split(",")
-                            tcpSetting.header.request = requestObj
-                            sni = (
-                                requestObj.headers.Host[0]
-                                if len(requestObj.headers.Host) > 0
-                                else sni
-                            )
-                    else:
-                        tcpSetting.header.type = "none"
-                        sni = host if host != "" else ""
-                    self.tcpSetting = tcpSetting
+            if self.network == "tcp":
+                tcpSetting = self.TcpSettingsBean()
+                if headerType == HTTP:
+                    tcpSetting.header.type = HTTP
+                    if host != "" or path != "":
+                        requestObj = self.TcpSettingsBean.HeaderBean.RequestBean()
+                        requestObj.headers.Host = (
+                            "" if host == None else host.split(",")
+                        )
+                        requestObj.path = "" if path == None else path.split(",")
+                        tcpSetting.header.request = requestObj
+                        sni = (
+                            requestObj.headers.Host[0]
+                            if len(requestObj.headers.Host) > 0
+                            else sni
+                        )
+                else:
+                    tcpSetting.header.type = "none"
+                    sni = host if host != "" else ""
+                self.tcpSetting = tcpSetting
 
-                case "kcp":
-                    kcpsetting = self.KcpSettingsBean()
-                    kcpsetting.header.type = (
-                        headerType if headerType != None else "none"
-                    )
-                    if seed == None or seed == "":
-                        kcpsetting.seed = None
-                    else:
-                        kcpsetting.seed = seed
-                    self.kcpSettings = kcpsetting
-                case "ws":
-                    wssetting = self.WsSettingsBean()
-                    wssetting.headers.Host = host if host != None else ""
-                    sni = wssetting.headers.Host
-                    wssetting.path = path if path != None else "/"
-                    self.wsSettings = wssetting
-                case "h2", "http":
-                    network = "h2"
-                    h2Setting = self.HttpSettingsBean()
-                    h2Setting.host = "" if host == None else host.split(",")
-                    sni = h2Setting.host[0] if len(h2Setting.host) > 0 else sni
-                    h2Setting.path = path if path != None else "/"
-                    self.httpSettings = h2Setting
-                case "quic":
-                    quicsetting = self.QuicSettingBean()
-                    quicsetting.security = (
-                        quicSecurity if quicSecurity != None else "none"
-                    )
-                    quicsetting.key = key if key != None else ""
-                    quicsetting.header.type = (
-                        headerType if headerType != None else "none"
-                    )
-                    self.quicSettings = quicsetting
-                case "grpc":
-                    grpcSetting = self.GrpcSettingsBean()
-                    grpcSetting.multiMode = mode == "multi"
-                    grpcSetting.serviceName = serviceName if serviceName != None else ""
-                    sni = host if host != None else ""
-                    self.grpcSettings = grpcSetting
+            elif self.network == "kcp":
+                kcpsetting = self.KcpSettingsBean()
+                kcpsetting.header.type = headerType if headerType != None else "none"
+                if seed == None or seed == "":
+                    kcpsetting.seed = None
+                else:
+                    kcpsetting.seed = seed
+                self.kcpSettings = kcpsetting
+
+            elif self.network == "ws":
+                wssetting = self.WsSettingsBean()
+                wssetting.headers.Host = host if host != None else ""
+                sni = wssetting.headers.Host
+                wssetting.path = path if path != None else "/"
+                self.wsSettings = wssetting
+
+            elif self.network == "h2" or self.network == "http":
+                network = "h2"
+                h2Setting = self.HttpSettingsBean()
+                h2Setting.host = "" if host == None else host.split(",")
+                sni = h2Setting.host[0] if len(h2Setting.host) > 0 else sni
+                h2Setting.path = path if path != None else "/"
+                self.httpSettings = h2Setting
+
+            elif self.network == "quic":
+                quicsetting = self.QuicSettingBean()
+                quicsetting.security = quicSecurity if quicSecurity != None else "none"
+                quicsetting.key = key if key != None else ""
+                quicsetting.header.type = headerType if headerType != None else "none"
+                self.quicSettings = quicsetting
+
+            elif self.network == "grpc":
+                grpcSetting = self.GrpcSettingsBean()
+                grpcSetting.multiMode = mode == "multi"
+                grpcSetting.serviceName = serviceName if serviceName != None else ""
+                sni = host if host != None else ""
+                self.grpcSettings = grpcSetting
 
             return sni
 
@@ -825,7 +836,15 @@ class PolicyBean:
         self.system = system
 
 
+class Comment:
+    remark: str = None
+
+    def __init__(self, remark: str = None) -> None:
+        self.remark = remark
+
+
 class V2rayConfig:
+    _comment: Comment = None
     stats: any = None
     log: LogBean
     policy: PolicyBean
@@ -841,6 +860,7 @@ class V2rayConfig:
 
     def __init__(
         self,
+        _comment: Comment = None,
         stats: any = None,
         log: LogBean = None,
         policy: PolicyBean = None,
@@ -855,6 +875,7 @@ class V2rayConfig:
         browserForwarder: any = None,
     ) -> None:
         self.stats = stats
+        self._comment = _comment
         self.log = log
         self.policy = policy
         self.inbounds = inbounds
@@ -883,6 +904,7 @@ class VmessQRCode:
     tls: str = ""
     sni: str = ""
     alpn: str = ""
+    allowInsecure: str = ""
 
     def __init__(
         self,
@@ -900,6 +922,7 @@ class VmessQRCode:
         tls: str = "",
         sni: str = "",
         alpn: str = "",
+        allowInsecure: str = "",
     ):
         self.v = v
         self.ps = ps
@@ -915,6 +938,7 @@ class VmessQRCode:
         self.tls = tls
         self.sni = sni
         self.alpn = alpn
+        self.allowInsecure = allowInsecure
 
 
 def remove_nulls(d):
@@ -1020,8 +1044,12 @@ def get_outbound2():
     return outbound2
 
 
-def get_dns():
-    dns = DnsBean(servers=["8.8.8.8"])
+def get_dns(dns_list=["8.8.8.8"]):
+    if isinstance(dns_list, str):
+        if "," in dns_list:
+            dns_list = dns_list.split(",")
+
+    dns = DnsBean(servers=dns_list)
     return dns
 
 
@@ -1030,20 +1058,22 @@ def get_routing():
     return routing
 
 
-def importConfig(str: str):
+def generateConfig(config: str, dns_list=["8.8.8.8"]):
 
     allowInsecure = True
 
-    if str.startswith(EConfigType.VMESS.protocolScheme):
+    temp = config.split("://")
+    protocol = temp[0]
+    raw_config = temp[1]
 
-        bs = str[len(EConfigType.VMESS.protocolScheme) :]
-        # paddings
-        blen = len(bs)
-        if blen % 4 > 0:
-            bs += "=" * (4 - blen % 4)
+    if protocol == EConfigType.VMESS.protocolName:
 
-        vms = base64.b64decode(bs).decode()
-        _json = json.loads(vms)
+        _len = len(raw_config)
+        if _len % 4 > 0:
+            raw_config += "=" * (4 - _len % 4)
+
+        b64decode = base64.b64decode(raw_config).decode(encoding="utf-8", errors="ignore")
+        _json = json.loads(b64decode, strict=False)
 
         vmessQRCode = VmessQRCode(**_json)
 
@@ -1087,10 +1117,11 @@ def importConfig(str: str):
         )
 
         v2rayConfig = V2rayConfig(
+            _comment=Comment(remark=vmessQRCode.ps),
             log=get_log(),
             inbounds=[get_inbound()],
             outbounds=[outbound, get_outbound1(), get_outbound2()],
-            dns=get_dns(),
+            dns=get_dns(dns_list=dns_list),
             routing=get_routing(),
         )
 
@@ -1099,17 +1130,18 @@ def importConfig(str: str):
         res = json.loads(v2rayConfig_str_json)
         res = remove_nulls(res)
 
-        print(json.dumps(res))
+        return json.dumps(res)
 
-    elif str.startswith(EConfigType.VLESS.protocolScheme):
+    elif protocol == EConfigType.VLESS.protocolName:
 
-        bs = str[len(EConfigType.VLESS.protocolScheme) :]
+        parsed_url = urlparse(config)
+        _netloc = parsed_url.netloc.split("@")
 
-        uid = bs.split("@")[0]
-        url = bs.split("@")[1]
-        url = url if "//" in url else "http://" + url
+        name = parsed_url.fragment
+        hostname = _netloc[1].split(":")[0]
+        port = int(_netloc[1].split(":")[1])
+        uid = _netloc[0]
 
-        parsed_url = urlparse(url)
         netquery = dict(
             (k, v if len(v) > 1 else v[0])
             for k, v in parse_qs(parsed_url.query).items()
@@ -1125,8 +1157,8 @@ def importConfig(str: str):
         )
 
         vnext = outbound.settings.vnext[0]
-        vnext.address = parsed_url.hostname
-        vnext.port = parsed_url.port
+        vnext.address = hostname
+        vnext.port = port
 
         user = vnext.users[0]
         user.id = uid
@@ -1153,10 +1185,11 @@ def importConfig(str: str):
         )
 
         v2rayConfig = V2rayConfig(
+            _comment=Comment(remark=name),
             log=get_log(),
             inbounds=[get_inbound()],
             outbounds=[outbound, get_outbound1(), get_outbound2()],
-            dns=get_dns(),
+            dns=get_dns(dns_list=dns_list),
             routing=get_routing(),
         )
 
@@ -1165,17 +1198,18 @@ def importConfig(str: str):
         res = json.loads(v2rayConfig_str_json)
         res = remove_nulls(res)
 
-        print(json.dumps(res))
+        return json.dumps(res)
 
-    elif str.startswith(EConfigType.TROJAN.protocolScheme):
+    elif protocol == EConfigType.TROJAN.protocolName:
 
-        bs = str[len(EConfigType.TROJAN.protocolScheme) :]
+        parsed_url = urlparse(config)
+        _netloc = parsed_url.netloc.split("@")
 
-        uid = bs.split("@")[0]
-        url = bs.split("@")[1]
-        url = url if "//" in url else "http://" + url
+        name = parsed_url.fragment
+        hostname = _netloc[1].split(":")[0]
+        port = int(_netloc[1].split(":")[1])
+        uid = _netloc[0]
 
-        parsed_url = urlparse(url)
         netquery = dict(
             (k, v if len(v) > 1 else v[0])
             for k, v in parse_qs(parsed_url.query).items()
@@ -1189,10 +1223,10 @@ def importConfig(str: str):
         fingerprint = (
             streamSetting.tlsSettings.fingerprint
             if streamSetting.tlsSettings != None
-            else "randomized"
+            else Fingerprint.randomized
         )
 
-        if len(parsed_url) > 0:
+        if len(netquery) > 0:
             sni = streamSetting.populateTransportSettings(
                 netquery.get("type", "tcp"),
                 netquery.get("headerType", None),
@@ -1219,16 +1253,17 @@ def importConfig(str: str):
             streamSetting.populateTlsSettings(TLS, allowInsecure, "", fingerprint, None)
 
         server = outbound.settings.servers[0]
-        server.address = parsed_url.hostname
-        server.port = parsed_url.port
-        server.password = netquery.get("password")
+        server.address = hostname
+        server.port = port
+        server.password = uid
         server.flow = flow
 
         v2rayConfig = V2rayConfig(
+            _comment=Comment(remark=name),
             log=get_log(),
             inbounds=[get_inbound()],
             outbounds=[outbound, get_outbound1(), get_outbound2()],
-            dns=get_dns(),
+            dns=get_dns(dns_list=dns_list),
             routing=get_routing(),
         )
 
@@ -1237,7 +1272,7 @@ def importConfig(str: str):
         res = json.loads(v2rayConfig_str_json)
         res = remove_nulls(res)
 
-        print(json.dumps(res))
+        return json.dumps(res)
 
 
 if __name__ == "__main__":
@@ -1251,13 +1286,11 @@ if __name__ == "__main__":
         help="A vmess://, vless://, trojan://, ... link.",
     )
 
-    try:
 
-        option = parser.parse_args()
-        config = option.config
 
-        importConfig(config)
+    option = parser.parse_args()
+    config = option.config
 
-    except Exception as e:
-        print(e.__traceback__)
-        parser.print_help()
+    print(generateConfig(config))
+
+
