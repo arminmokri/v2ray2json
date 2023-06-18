@@ -1075,6 +1075,11 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
         b64decode = base64.b64decode(raw_config).decode(encoding="utf-8", errors="ignore")
         _json = json.loads(b64decode, strict=False)
 
+        vmessQRCode_attributes = list(VmessQRCode.__dict__["__annotations__"].keys())
+        for key in list(_json.keys()):
+            if key not in vmessQRCode_attributes:
+                del _json[key]
+
         vmessQRCode = VmessQRCode(**_json)
 
         outbound = get_outbound_vmess()
