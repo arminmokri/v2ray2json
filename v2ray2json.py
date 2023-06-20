@@ -1,7 +1,8 @@
 import json
 import base64
 import argparse
-from urllib.parse import urlparse
+import re
+from urllib.parse import unquote, urlparse
 from urllib.parse import parse_qs
 
 DEFAULT_PORT = 443
@@ -11,6 +12,7 @@ DEFAULT_NETWORK = "tcp"
 
 TLS = "tls"
 XTLS = "xtls"
+REALITY = "reality"
 HTTP = "http"
 
 
@@ -448,6 +450,10 @@ class OutboundBean:
             certificates: list[any] = None  # any
             disableSystemRoot: bool = None
             enableSessionResumption: bool = None
+            show: bool = False
+            publicKey: str = None
+            shortId: str = None
+            spiderX: str = None
 
             def __init__(
                 self,
@@ -462,6 +468,10 @@ class OutboundBean:
                 certificates: list[any] = None,
                 disableSystemRoot: bool = None,
                 enableSessionResumption: bool = None,
+                show: bool = False,
+                publicKey: str = None,
+                shortId: str = None,
+                spiderX: str = None,
             ) -> None:
                 self.allowInsecure = allowInsecure
                 self.serverName = serverName
@@ -474,6 +484,10 @@ class OutboundBean:
                 self.certificates = certificates
                 self.disableSystemRoot = disableSystemRoot
                 self.enableSessionResumption = enableSessionResumption
+                self.show = show
+                self.publicKey = publicKey
+                self.shortId = shortId
+                self.spiderX = spiderX
 
         class QuicSettingBean:
             class HeaderBean:
@@ -511,6 +525,7 @@ class OutboundBean:
         wsSettings: WsSettingsBean = None
         httpSettings: HttpSettingsBean = None
         tlsSettings: TlsSettingsBean = None
+        realitySettings: TlsSettingsBean = None
         quicSettings: QuicSettingBean = None
         xtlsSettings: TlsSettingsBean = None
         grpcSettings: GrpcSettingsBean = None
@@ -526,6 +541,7 @@ class OutboundBean:
             wsSettings: WsSettingsBean = None,
             httpSettings: HttpSettingsBean = None,
             tlsSettings: TlsSettingsBean = None,
+            realitySettings: TlsSettingsBean = None,
             quicSettings: QuicSettingBean = None,
             xtlsSettings: TlsSettingsBean = None,
             grpcSettings: GrpcSettingsBean = None,
@@ -627,6 +643,9 @@ class OutboundBean:
             sni: str,
             fingerprint: str,
             alpns: str,
+            publicKey:str = None,
+            shortId:str = None,
+            spiderX:str = None
         ):
             self.security = streamSecurity
             tlsSetting = self.TlsSettingsBean(
@@ -634,6 +653,9 @@ class OutboundBean:
                 serverName=sni,
                 fingerprint=fingerprint,
                 alpn=None if alpns == None or alpns == "" else alpns.split(","),
+                publicKey=publicKey,
+                shortId=shortId,
+                spiderX=spiderX
             )
 
             if self.security == TLS:
@@ -642,6 +664,9 @@ class OutboundBean:
             elif self.security == XTLS:
                 self.tlsSettings = None
                 self.xtlsSettings = tlsSetting
+            elif self.security == REALITY:
+                self.tls_settings = None
+                self.realitySettings = tlsSetting
 
     class MuxBean:
         enabled: bool
@@ -923,6 +948,7 @@ class VmessQRCode:
         sni: str = "",
         alpn: str = "",
         allowInsecure: str = "",
+        fp: str = "",
     ):
         self.v = v
         self.ps = ps
@@ -939,6 +965,7 @@ class VmessQRCode:
         self.sni = sni
         self.alpn = alpn
         self.allowInsecure = allowInsecure
+        self.fp = fp
 
 
 def remove_nulls(d):
@@ -995,6 +1022,45 @@ def get_outbound_vmess():
     )
     return outbound
 
+def get_outbound_ss():
+    outbound = OutboundBean(
+        protocol="shadowsocks",
+        settings=OutboundBean.OutSettingsBean(
+            servers=[OutboundBean.OutSettingsBean.ServersBean()]
+        ),
+        streamSettings=OutboundBean.StreamSettingsBean(),
+    )
+    return outbound
+
+def try_resolve_resolve_sip002(str:str, config:OutboundBean):
+    try:
+        uri = urlparse(str)
+        config.remarks = unquote(uri.fragment or "")
+
+        if ":" in uri.username:
+            arr_user_info = list(map(str.strip, uri.username.split(":")))
+            if len(arr_user_info) != 2:
+                return False
+            method = arr_user_info[0]
+            password = unquote(arr_user_info[1])
+        else:
+            base64_decode = base64.b64decode(uri.username).decode(encoding="utf-8", errors="ignore")
+            arr_user_info = list(map(str.strip, base64_decode.split(":")))
+            if len(arr_user_info) < 2:
+                return False
+            method = arr_user_info[0]
+            password = base64_decode.split(":", 1)[1]
+
+        server = config.outbound_bean.settings.servers[0]
+        server.address = uri.hostname
+        server.port = uri.port
+        server.password = password
+        server.method = method
+
+        return True
+    except Exception as e:
+        # print(e)
+        return False
 
 def get_outbound_vless():
     outbound = OutboundBean(
@@ -1107,11 +1173,7 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
             vmessQRCode.path,
         )
 
-        fingerprint = (
-            streamSetting.tlsSettings.fingerprint
-            if streamSetting.tlsSettings != None
-            else None
-        )
+        fingerprint = vmessQRCode.fp if vmessQRCode.fp else streamSetting.tlsSettings.fingerprint if streamSetting.tlsSettings else None
 
         streamSetting.populateTlsSettings(
             vmessQRCode.tls,
@@ -1137,6 +1199,51 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
 
         return json.dumps(res)
 
+    elif protocol == EConfigType.SHADOWSOCKS.protocolName:
+        outbound = get_outbound_ss()
+        if not try_resolve_resolve_sip002(raw_config,outbound):
+            result = raw_config.replace(EConfigType.SHADOWSOCKS.protocolScheme, "")
+            index_split = result.find("#")
+            if index_split > 0:
+                try:
+                    outbound.remarks = unquote(result[index_split + 1:])
+                except Exception as e:
+                    None # print(e)
+
+                result = result[:index_split]
+
+            # part decode
+            index_s = result.find("@")
+            result = base64.b64decode(result[:index_s]).decode(encoding="utf-8", errors="ignore") + result[index_s:] if index_s > 0 else base64.b64decode(result).decode(encoding="utf-8", errors="ignore")
+
+            legacy_pattern = re.compile(r'^(.+?):(.*)@(.+):(\d+)\/?.*$')
+            match = legacy_pattern.match(result)
+
+            if not match:
+                raise Exception("Incorrect protocol")
+
+            server = outbound.settings.servers[0]
+            server.address = match.group(3).strip("[]")
+            server.port = int(match.group(4))
+            server.password = match.group(2)
+            server.method = match.group(1).lower()
+
+            v2rayConfig = V2rayConfig(
+                _comment=Comment(remark=outbound.remarks),
+                log=get_log(),
+                inbounds=[get_inbound()],
+                outbounds=[outbound, get_outbound1(), get_outbound2()],
+                dns=get_dns(dns_list=dns_list),
+                routing=get_routing(),
+            )
+
+            v2rayConfig_str_json = json.dumps(v2rayConfig, default=vars)
+
+        res = json.loads(v2rayConfig_str_json)
+        res = remove_nulls(res)
+
+        return json.dumps(res)
+
     elif protocol == EConfigType.VLESS.protocolName:
 
         parsed_url = urlparse(config)
@@ -1155,11 +1262,7 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
         outbound = get_outbound_vless()
 
         streamSetting = outbound.streamSettings
-        fingerprint = (
-            streamSetting.tlsSettings.fingerprint
-            if streamSetting.tlsSettings != None
-            else None
-        )
+        fingerprint = netquery.get("fp", "ios")
 
         vnext = outbound.settings.vnext[0]
         vnext.address = hostname
@@ -1187,6 +1290,9 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
             sni if netquery.get("sni", None) == None else netquery.get("sni", None),
             fingerprint,
             netquery.get("alpn", None),
+            publicKey=netquery.get("pbk", ""),
+            shortId=netquery.get("sid", ""),
+            spiderX=netquery.get("spx", "")
         )
 
         v2rayConfig = V2rayConfig(
