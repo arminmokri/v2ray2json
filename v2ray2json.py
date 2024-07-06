@@ -1205,9 +1205,9 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
         _netloc = parsed_url.netloc.split("@")
 
         name = parsed_url.fragment
-        hostname = _netloc[1].split(":")[0]
-        port = int(_netloc[1].split(":")[1])
         uid = _netloc[0]
+        hostname = _netloc[1].rsplit(":", 1)[0]
+        port = int(_netloc[1].rsplit(":", 1)[1])
 
         netquery = dict(
             (k, v if len(v) > 1 else v[0])
@@ -1276,10 +1276,10 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
         _netloc = parsed_url.netloc.split("@")
 
         name = parsed_url.fragment
-        hostname = _netloc[1].split(":")[0]
-        port = int(_netloc[1].split(":")[1])
         uid = _netloc[0]
-
+        hostname = _netloc[1].rsplit(":", 1)[0]
+        port = int(_netloc[1].rsplit(":", 1)[1])
+        
         netquery = dict(
             (k, v if len(v) > 1 else v[0])
             for k, v in parse_qs(parsed_url.query).items()
