@@ -1217,11 +1217,7 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
         outbound = get_outbound_vless()
 
         streamSetting = outbound.streamSettings
-        fingerprint = (
-            streamSetting.tlsSettings.fingerprint
-            if streamSetting.tlsSettings != None
-            else None
-        )
+        fingerprint = netquery.get('fp') if 'fp' in netquery else streamSetting.tlsSettings.fingerprint if streamSetting.tlsSettings else None
 
         vnext = outbound.settings.vnext[0]
         vnext.address = hostname
