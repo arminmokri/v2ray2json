@@ -81,7 +81,9 @@ class LogBean:
     loglevel: str
     dnsLog: bool
 
-    def __init__(self, access: str, error: str, loglevel: str, dnsLog: bool) -> None:
+    def __init__(
+        self, access: str, error: str, loglevel: str, dnsLog: bool
+    ) -> None:
         self.access = access
         self.error = error
         self.loglevel = loglevel
@@ -204,7 +206,10 @@ class OutboundBean:
                 level: int = DEFAULT_LEVEL
 
                 def __init__(
-                    self, user: str = "", _pass: str = "", level: int = DEFAULT_LEVEL
+                    self,
+                    user: str = "",
+                    _pass: str = "",
+                    level: int = DEFAULT_LEVEL,
                 ) -> None:
                     self.user = user
                     self._pass = _pass
@@ -255,7 +260,9 @@ class OutboundBean:
             publicKey: str = ""
             endpoint: str = ""
 
-            def __init__(self, publicKey: str = "", endpoint: str = "") -> None:
+            def __init__(
+                self, publicKey: str = "", endpoint: str = ""
+            ) -> None:
                 self.publicKey = publicKey
                 self.endpoint = endpoint
 
@@ -514,7 +521,9 @@ class OutboundBean:
             serviceName: str = ""
             multiMode: bool = None
 
-            def __init__(self, serviceName: str = "", multiMode: bool = None) -> None:
+            def __init__(
+                self, serviceName: str = "", multiMode: bool = None
+            ) -> None:
                 self.serviceName = serviceName
                 self.multiMode = multiMode
 
@@ -578,11 +587,15 @@ class OutboundBean:
                 if headerType == HTTP:
                     tcpSetting.header.type = HTTP
                     if host != "" or path != "":
-                        requestObj = self.TcpSettingsBean.HeaderBean.RequestBean()
+                        requestObj = (
+                            self.TcpSettingsBean.HeaderBean.RequestBean()
+                        )
                         requestObj.headers.Host = (
                             "" if host == None else host.split(",")
                         )
-                        requestObj.path = "" if path == None else path.split(",")
+                        requestObj.path = (
+                            "" if path == None else path.split(",")
+                        )
                         tcpSetting.header.request = requestObj
                         sni = (
                             requestObj.headers.Host[0]
@@ -596,7 +609,9 @@ class OutboundBean:
 
             elif self.network == "kcp":
                 kcpsetting = self.KcpSettingsBean()
-                kcpsetting.header.type = headerType if headerType != None else "none"
+                kcpsetting.header.type = (
+                    headerType if headerType != None else "none"
+                )
                 if seed == None or seed == "":
                     kcpsetting.seed = None
                 else:
@@ -620,15 +635,21 @@ class OutboundBean:
 
             elif self.network == "quic":
                 quicsetting = self.QuicSettingBean()
-                quicsetting.security = quicSecurity if quicSecurity != None else "none"
+                quicsetting.security = (
+                    quicSecurity if quicSecurity != None else "none"
+                )
                 quicsetting.key = key if key != None else ""
-                quicsetting.header.type = headerType if headerType != None else "none"
+                quicsetting.header.type = (
+                    headerType if headerType != None else "none"
+                )
                 self.quicSettings = quicsetting
 
             elif self.network == "grpc":
                 grpcSetting = self.GrpcSettingsBean()
                 grpcSetting.multiMode = mode == "multi"
-                grpcSetting.serviceName = serviceName if serviceName != None else ""
+                grpcSetting.serviceName = (
+                    serviceName if serviceName != None else ""
+                )
                 sni = host if host != None else ""
                 self.grpcSettings = grpcSetting
 
@@ -643,17 +664,19 @@ class OutboundBean:
             alpns: str,
             publicKey: str,
             shortId: str,
-            spiderX: str
+            spiderX: str,
         ):
             self.security = streamSecurity
             tlsSetting = self.TlsSettingsBean(
-                allowInsecure = allowInsecure,
-                serverName = sni,
-                fingerprint = fingerprint,
-                alpn = None if alpns == None or alpns == "" else alpns.split(","),
-                publicKey = publicKey,
-                shortId = shortId,
-                spiderX = spiderX
+                allowInsecure=allowInsecure,
+                serverName=sni,
+                fingerprint=fingerprint,
+                alpn=(
+                    None if alpns == None or alpns == "" else alpns.split(",")
+                ),
+                publicKey=publicKey,
+                shortId=shortId,
+                spiderX=spiderX,
             )
 
             if self.security == TLS:
@@ -815,7 +838,9 @@ class FakednsBean:
     ipPool: str = "198.18.0.0/15"
     poolSize: int = 10000
 
-    def __init__(self, ipPool: str = "198.18.0.0/15", poolSize: int = 10000) -> None:
+    def __init__(
+        self, ipPool: str = "198.18.0.0/15", poolSize: int = 10000
+    ) -> None:
         self.ipPool = ipPool
         self.poolSize = poolSize
 
@@ -977,80 +1002,80 @@ def remove_nulls(d):
 
 
 def get_log():
-    log = LogBean(access = "", error = "", loglevel = "error", dnsLog = False)
+    log = LogBean(access="", error="", loglevel="error", dnsLog=False)
     return log
 
 
 def get_inbound():
     inbound = InboundBean(
-        tag = "in_proxy",
-        port = 1080,
-        protocol = EConfigType.SOCKS.protocolName,
-        listen = "127.0.0.1",
-        settings = InboundBean.InSettingsBean(
-            auth = "noauth",
-            udp = True,
-            userLevel = 8,
+        tag="in_proxy",
+        port=1080,
+        protocol=EConfigType.SOCKS.protocolName,
+        listen="127.0.0.1",
+        settings=InboundBean.InSettingsBean(
+            auth="noauth",
+            udp=True,
+            userLevel=8,
         ),
-        sniffing = InboundBean.SniffingBean(
-            enabled = False,
-            destOverride = None,
-            metadataOnly = None,
+        sniffing=InboundBean.SniffingBean(
+            enabled=False,
+            destOverride=None,
+            metadataOnly=None,
         ),
-        streamSettings = None,
-        allocate = None,
+        streamSettings=None,
+        allocate=None,
     )
     return inbound
 
 
 def get_outbound_vmess():
     outbound = OutboundBean(
-        protocol = EConfigType.VMESS.protocolName,
-        settings = OutboundBean.OutSettingsBean(
-            vnext = [
+        protocol=EConfigType.VMESS.protocolName,
+        settings=OutboundBean.OutSettingsBean(
+            vnext=[
                 OutboundBean.OutSettingsBean.VnextBean(
-                    users = [OutboundBean.OutSettingsBean.VnextBean.UsersBean()],
+                    users=[OutboundBean.OutSettingsBean.VnextBean.UsersBean()],
                 ),
             ]
         ),
-        streamSettings = OutboundBean.StreamSettingsBean(),
+        streamSettings=OutboundBean.StreamSettingsBean(),
     )
     return outbound
 
 
 def get_outbound_vless():
     outbound = OutboundBean(
-        protocol = EConfigType.VLESS.protocolName,
-        settings = OutboundBean.OutSettingsBean(
-            vnext = [
+        protocol=EConfigType.VLESS.protocolName,
+        settings=OutboundBean.OutSettingsBean(
+            vnext=[
                 OutboundBean.OutSettingsBean.VnextBean(
-                    users = [OutboundBean.OutSettingsBean.VnextBean.UsersBean()],
+                    users=[OutboundBean.OutSettingsBean.VnextBean.UsersBean()],
                 ),
             ]
         ),
-        streamSettings = OutboundBean.StreamSettingsBean(),
+        streamSettings=OutboundBean.StreamSettingsBean(),
     )
     return outbound
 
 
 def get_outbound_trojan():
     outbound = OutboundBean(
-        protocol = EConfigType.TROJAN.protocolName,
-        settings = OutboundBean.OutSettingsBean(
-            servers = [OutboundBean.OutSettingsBean.ServersBean()]
+        protocol=EConfigType.TROJAN.protocolName,
+        settings=OutboundBean.OutSettingsBean(
+            servers=[OutboundBean.OutSettingsBean.ServersBean()]
         ),
-        streamSettings = OutboundBean.StreamSettingsBean(),
+        streamSettings=OutboundBean.StreamSettingsBean(),
     )
     return outbound
 
 
 def get_outbound_ss():
     outbound = OutboundBean(
-        protocol = "shadowsocks",
-        settings = OutboundBean.OutSettingsBean(
-            servers = [OutboundBean.OutSettingsBean.ServersBean()]
+        protocol="shadowsocks",
+        settings=OutboundBean.OutSettingsBean(
+            servers=[OutboundBean.OutSettingsBean.ServersBean()]
         ),
-        streamSettings = OutboundBean.StreamSettingsBean(),
+        streamSettings=OutboundBean.StreamSettingsBean(),
     )
     return outbound
 
@@ -1067,7 +1092,9 @@ def try_resolve_resolve_sip002(str: str, config: OutboundBean):
             method = arr_user_info[0]
             password = unquote(arr_user_info[1])
         else:
-            base64_decode = base64.b64decode(uri.username).decode(encoding = "utf-8", errors = "ignore")
+            base64_decode = base64.b64decode(uri.username).decode(
+                encoding="utf-8", errors="ignore"
+            )
             arr_user_info = list(map(str.strip, base64_decode.split(":")))
             if len(arr_user_info) < 2:
                 return False
@@ -1087,22 +1114,22 @@ def try_resolve_resolve_sip002(str: str, config: OutboundBean):
 
 def get_outbound1():
     outbound1 = OutboundBean(
-        tag = "direct",
-        protocol = EConfigType.FREEDOM.protocolName,
-        settings = OutboundBean.OutSettingsBean(
-            domainStrategy = DomainStrategy.UseIp,
+        tag="direct",
+        protocol=EConfigType.FREEDOM.protocolName,
+        settings=OutboundBean.OutSettingsBean(
+            domainStrategy=DomainStrategy.UseIp,
         ),
-        mux = None,
+        mux=None,
     )
     return outbound1
 
 
 def get_outbound2():
     outbound2 = OutboundBean(
-        tag = "blackhole",
-        protocol = EConfigType.BLACKHOLE.protocolName,
-        settings = OutboundBean.OutSettingsBean(),
-        mux = None,
+        tag="blackhole",
+        protocol=EConfigType.BLACKHOLE.protocolName,
+        settings=OutboundBean.OutSettingsBean(),
+        mux=None,
     )
     return outbound2
 
@@ -1112,17 +1139,16 @@ def get_dns(dns_list=["8.8.8.8"]):
         if "," in dns_list:
             dns_list = dns_list.split(",")
 
-    dns = DnsBean(servers = dns_list)
+    dns = DnsBean(servers=dns_list)
     return dns
 
 
 def get_routing():
-    routing = RoutingBean(domainStrategy = DomainStrategy.UseIp)
+    routing = RoutingBean(domainStrategy=DomainStrategy.UseIp)
     return routing
 
 
-def generateConfig(config: str, dns_list = ["8.8.8.8"]):
-
+def generateConfig(config: str, dns_list=["8.8.8.8"]):
     allowInsecure = True
 
     temp = config.split("://")
@@ -1130,15 +1156,18 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
     raw_config = temp[1]
 
     if protocol == EConfigType.VMESS.protocolName:
-
         _len = len(raw_config)
         if _len % 4 > 0:
             raw_config += "=" * (4 - _len % 4)
 
-        b64decode = base64.b64decode(raw_config).decode(encoding = "utf-8", errors = "ignore")
-        _json = json.loads(b64decode, strict = False)
+        b64decode = base64.b64decode(raw_config).decode(
+            encoding="utf-8", errors="ignore"
+        )
+        _json = json.loads(b64decode, strict=False)
 
-        vmessQRCode_attributes = list(VmessQRCode.__dict__["__annotations__"].keys())
+        vmessQRCode_attributes = list(
+            VmessQRCode.__dict__["__annotations__"].keys()
+        )
         for key in list(_json.keys()):
             if key not in vmessQRCode_attributes:
                 del _json[key]
@@ -1149,47 +1178,63 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
 
         vnext = outbound.settings.vnext[0]
         vnext.address = vmessQRCode.add
-        vnext.port = int(vmessQRCode.port) if vmessQRCode.port.isdigit() else DEFAULT_PORT
+        vnext.port = (
+            int(vmessQRCode.port)
+            if vmessQRCode.port.isdigit()
+            else DEFAULT_PORT
+        )
 
         user = vnext.users[0]
         user.id = vmessQRCode.id
-        user.security = vmessQRCode.scy if vmessQRCode.scy != "" else DEFAULT_SECURITY
-        user.alterId = int(vmessQRCode.aid) if vmessQRCode.aid.isdigit() else None
+        user.security = (
+            vmessQRCode.scy if vmessQRCode.scy != "" else DEFAULT_SECURITY
+        )
+        user.alterId = (
+            int(vmessQRCode.aid) if vmessQRCode.aid.isdigit() else None
+        )
 
         streamSetting = outbound.streamSettings
 
         sni = streamSetting.populateTransportSettings(
-            transport = vmessQRCode.net,
-            headerType = vmessQRCode.type,
-            host = vmessQRCode.host,
-            path = vmessQRCode.path,
-            seed = vmessQRCode.path,
-            quicSecurity = vmessQRCode.host,
-            key = vmessQRCode.path,
-            mode = vmessQRCode.type,
-            serviceName = vmessQRCode.path,
+            transport=vmessQRCode.net,
+            headerType=vmessQRCode.type,
+            host=vmessQRCode.host,
+            path=vmessQRCode.path,
+            seed=vmessQRCode.path,
+            quicSecurity=vmessQRCode.host,
+            key=vmessQRCode.path,
+            mode=vmessQRCode.type,
+            serviceName=vmessQRCode.path,
         )
 
-        fingerprint = vmessQRCode.fp if vmessQRCode.fp else streamSetting.tlsSettings.fingerprint if streamSetting.tlsSettings else None
+        fingerprint = (
+            vmessQRCode.fp
+            if vmessQRCode.fp
+            else (
+                streamSetting.tlsSettings.fingerprint
+                if streamSetting.tlsSettings
+                else None
+            )
+        )
 
         streamSetting.populateTlsSettings(
-            streamSecurity = vmessQRCode.tls,
-            allowInsecure = allowInsecure,
-            sni = sni if vmessQRCode.sni == "" else vmessQRCode.sni,
-            fingerprint = fingerprint,
-            alpns = vmessQRCode.alpn,
-            publicKey = None,
-            shortId = None,
-            spiderX = None
+            streamSecurity=vmessQRCode.tls,
+            allowInsecure=allowInsecure,
+            sni=sni if vmessQRCode.sni == "" else vmessQRCode.sni,
+            fingerprint=fingerprint,
+            alpns=vmessQRCode.alpn,
+            publicKey=None,
+            shortId=None,
+            spiderX=None,
         )
 
         v2rayConfig = V2rayConfig(
-            _comment = Comment(remark = vmessQRCode.ps),
-            log = get_log(),
-            inbounds = [get_inbound()],
-            outbounds = [outbound, get_outbound1(), get_outbound2()],
-            dns = get_dns(dns_list=dns_list),
-            routing = get_routing(),
+            _comment=Comment(remark=vmessQRCode.ps),
+            log=get_log(),
+            inbounds=[get_inbound()],
+            outbounds=[outbound, get_outbound1(), get_outbound2()],
+            dns=get_dns(dns_list=dns_list),
+            routing=get_routing(),
         )
 
         v2rayConfig_str_json = json.dumps(v2rayConfig, default=vars)
@@ -1200,7 +1245,6 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
         return json.dumps(res)
 
     elif protocol == EConfigType.VLESS.protocolName:
-
         parsed_url = urlparse(config)
         _netloc = parsed_url.netloc.split("@")
 
@@ -1217,7 +1261,15 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
         outbound = get_outbound_vless()
 
         streamSetting = outbound.streamSettings
-        fingerprint = netquery.get('fp') if 'fp' in netquery else streamSetting.tlsSettings.fingerprint if streamSetting.tlsSettings else None
+        fingerprint = (
+            netquery.get("fp")
+            if "fp" in netquery
+            else (
+                streamSetting.tlsSettings.fingerprint
+                if streamSetting.tlsSettings
+                else None
+            )
+        )
 
         vnext = outbound.settings.vnext[0]
         vnext.address = hostname
@@ -1229,37 +1281,41 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
         user.flow = netquery.get("flow", "")
 
         sni = streamSetting.populateTransportSettings(
-            transport = netquery.get("type", "tcp"),
-            headerType = netquery.get("headerType", None),
-            host = netquery.get("host", None),
-            path = netquery.get("path", None),
-            seed = netquery.get("seed", None),
-            quicSecurity = netquery.get("quicSecurity", None),
-            key = netquery.get("key", None),
-            mode = netquery.get("mode", None),
-            serviceName = netquery.get("serviceName", None),
+            transport=netquery.get("type", "tcp"),
+            headerType=netquery.get("headerType", None),
+            host=netquery.get("host", None),
+            path=netquery.get("path", None),
+            seed=netquery.get("seed", None),
+            quicSecurity=netquery.get("quicSecurity", None),
+            key=netquery.get("key", None),
+            mode=netquery.get("mode", None),
+            serviceName=netquery.get("serviceName", None),
         )
         streamSetting.populateTlsSettings(
-            streamSecurity = netquery.get("security", ""),
-            allowInsecure = allowInsecure,
-            sni = sni if netquery.get("sni", None) == None else netquery.get("sni", None),
-            fingerprint = fingerprint,
-            alpns = netquery.get("alpn", None),
-            publicKey = netquery.get("pbk", ""),
-            shortId = netquery.get("sid", ""),
-            spiderX = netquery.get("spx", ""),
+            streamSecurity=netquery.get("security", ""),
+            allowInsecure=allowInsecure,
+            sni=(
+                sni
+                if netquery.get("sni", None) == None
+                else netquery.get("sni", None)
+            ),
+            fingerprint=fingerprint,
+            alpns=netquery.get("alpn", None),
+            publicKey=netquery.get("pbk", ""),
+            shortId=netquery.get("sid", ""),
+            spiderX=netquery.get("spx", ""),
         )
 
         v2rayConfig = V2rayConfig(
-            _comment = Comment(remark = name),
-            log = get_log(),
-            inbounds = [get_inbound()],
-            outbounds = [outbound, get_outbound1(), get_outbound2()],
-            dns = get_dns(dns_list = dns_list),
-            routing = get_routing(),
+            _comment=Comment(remark=name),
+            log=get_log(),
+            inbounds=[get_inbound()],
+            outbounds=[outbound, get_outbound1(), get_outbound2()],
+            dns=get_dns(dns_list=dns_list),
+            routing=get_routing(),
         )
 
-        v2rayConfig_str_json = json.dumps(v2rayConfig, default = vars)
+        v2rayConfig_str_json = json.dumps(v2rayConfig, default=vars)
 
         res = json.loads(v2rayConfig_str_json)
         res = remove_nulls(res)
@@ -1267,7 +1323,6 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
         return json.dumps(res)
 
     elif protocol == EConfigType.TROJAN.protocolName:
-
         parsed_url = urlparse(config)
         _netloc = parsed_url.netloc.split("@")
 
@@ -1275,7 +1330,7 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
         uid = _netloc[0]
         hostname = _netloc[1].rsplit(":", 1)[0]
         port = int(_netloc[1].rsplit(":", 1)[1])
-        
+
         netquery = dict(
             (k, v if len(v) > 1 else v[0])
             for k, v in parse_qs(parsed_url.query).items()
@@ -1294,40 +1349,44 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
 
         if len(netquery) > 0:
             sni = streamSetting.populateTransportSettings(
-                transport = netquery.get("type", "tcp"),
-                headerType = netquery.get("headerType", None),
-                host = netquery.get("host", None),
-                path = netquery.get("path", None),
-                seed = netquery.get("seed", None),
-                quicSecurity = netquery.get("quicSecurity", None),
-                key = netquery.get("key", None),
-                mode = netquery.get("mode", None),
-                serviceName = netquery.get("serviceName", None),
+                transport=netquery.get("type", "tcp"),
+                headerType=netquery.get("headerType", None),
+                host=netquery.get("host", None),
+                path=netquery.get("path", None),
+                seed=netquery.get("seed", None),
+                quicSecurity=netquery.get("quicSecurity", None),
+                key=netquery.get("key", None),
+                mode=netquery.get("mode", None),
+                serviceName=netquery.get("serviceName", None),
             )
 
             streamSetting.populateTlsSettings(
-                streamSecurity = netquery.get("security", TLS),
-                allowInsecure = allowInsecure,
-                sni = sni if netquery.get("sni", None) == None else netquery.get("sni", None),
-                fingerprint = fingerprint,
-                alpns = netquery.get("alpn", None),
-                publicKey = None,
-                shortId = None,
-                spiderX = None,
+                streamSecurity=netquery.get("security", TLS),
+                allowInsecure=allowInsecure,
+                sni=(
+                    sni
+                    if netquery.get("sni", None) == None
+                    else netquery.get("sni", None)
+                ),
+                fingerprint=fingerprint,
+                alpns=netquery.get("alpn", None),
+                publicKey=None,
+                shortId=None,
+                spiderX=None,
             )
 
             flow = netquery.get("flow", "")
 
         else:
             streamSetting.populateTlsSettings(
-                streamSecurity = TLS,
-                allowInsecure = allowInsecure,
-                sni = "",
-                fingerprint = fingerprint,
-                alpns = None,
-                publicKey = None,
-                shortId = None,
-                spiderX = None,
+                streamSecurity=TLS,
+                allowInsecure=allowInsecure,
+                sni="",
+                fingerprint=fingerprint,
+                alpns=None,
+                publicKey=None,
+                shortId=None,
+                spiderX=None,
             )
 
         server = outbound.settings.servers[0]
@@ -1337,39 +1396,50 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
         server.flow = flow
 
         v2rayConfig = V2rayConfig(
-            _comment = Comment(remark = name),
-            log = get_log(),
-            inbounds = [get_inbound()],
-            outbounds = [outbound, get_outbound1(), get_outbound2()],
-            dns = get_dns(dns_list = dns_list),
-            routing = get_routing(),
+            _comment=Comment(remark=name),
+            log=get_log(),
+            inbounds=[get_inbound()],
+            outbounds=[outbound, get_outbound1(), get_outbound2()],
+            dns=get_dns(dns_list=dns_list),
+            routing=get_routing(),
         )
 
-        v2rayConfig_str_json = json.dumps(v2rayConfig, default = vars)
+        v2rayConfig_str_json = json.dumps(v2rayConfig, default=vars)
 
         res = json.loads(v2rayConfig_str_json)
         res = remove_nulls(res)
 
         return json.dumps(res)
-    
+
     elif protocol == EConfigType.SHADOWSOCKS.protocolName:
         outbound = get_outbound_ss()
         if not try_resolve_resolve_sip002(raw_config, outbound):
-            result = raw_config.replace(EConfigType.SHADOWSOCKS.protocolScheme, "")
+            result = raw_config.replace(
+                EConfigType.SHADOWSOCKS.protocolScheme, ""
+            )
             index_split = result.find("#")
             if index_split > 0:
                 try:
-                    outbound.remarks = unquote(result[index_split + 1:])
+                    outbound.remarks = unquote(result[index_split + 1 :])
                 except Exception as e:
-                    None # print(e)
+                    None  # print(e)
 
                 result = result[:index_split]
 
             # part decode
             index_s = result.find("@")
-            result = base64.b64decode(result[:index_s]).decode(encoding = "utf-8", errors = "ignore") + result[index_s:] if index_s > 0 else base64.b64decode(result).decode(encoding = "utf-8", errors = "ignore")
+            result = (
+                base64.b64decode(result[:index_s]).decode(
+                    encoding="utf-8", errors="ignore"
+                )
+                + result[index_s:]
+                if index_s > 0
+                else base64.b64decode(result).decode(
+                    encoding="utf-8", errors="ignore"
+                )
+            )
 
-            legacy_pattern = re.compile(r'^(.+?):(.*)@(.+):(\d+)\/?.*$')
+            legacy_pattern = re.compile(r"^(.+?):(.*)@(.+):(\d+)\/?.*$")
             match = legacy_pattern.match(result)
 
             if not match:
@@ -1382,15 +1452,15 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
             server.method = match.group(1).lower()
 
             v2rayConfig = V2rayConfig(
-                _comment = Comment(remark = outbound.remarks),
-                log = get_log(),
-                inbounds = [get_inbound()],
-                outbounds = [outbound, get_outbound1(), get_outbound2()],
-                dns = get_dns(dns_list = dns_list),
-                routing = get_routing(),
+                _comment=Comment(remark=outbound.remarks),
+                log=get_log(),
+                inbounds=[get_inbound()],
+                outbounds=[outbound, get_outbound1(), get_outbound2()],
+                dns=get_dns(dns_list=dns_list),
+                routing=get_routing(),
             )
 
-            v2rayConfig_str_json = json.dumps(v2rayConfig, default = vars)
+            v2rayConfig_str_json = json.dumps(v2rayConfig, default=vars)
 
         res = json.loads(v2rayConfig_str_json)
         res = remove_nulls(res)
@@ -1399,20 +1469,16 @@ def generateConfig(config: str, dns_list = ["8.8.8.8"]):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
-        description = "v2ray2json convert vmess, vless, trojan, ... link to client json config."
+        description="v2ray2json convert vmess, vless, trojan, ... link to client json config."
     )
     parser.add_argument(
         "config",
-        nargs = "?",
-        help = "A vmess://, vless://, trojan://, ... link.",
+        nargs="?",
+        help="A vmess://, vless://, trojan://, ... link.",
     )
-
-
 
     option = parser.parse_args()
     config = option.config
 
     print(generateConfig(config))
-
