@@ -81,9 +81,7 @@ class LogBean:
     loglevel: str
     dnsLog: bool
 
-    def __init__(
-        self, access: str, error: str, loglevel: str, dnsLog: bool
-    ) -> None:
+    def __init__(self, access: str, error: str, loglevel: str, dnsLog: bool) -> None:
         self.access = access
         self.error = error
         self.loglevel = loglevel
@@ -206,10 +204,7 @@ class OutboundBean:
                 level: int = DEFAULT_LEVEL
 
                 def __init__(
-                    self,
-                    user: str = "",
-                    _pass: str = "",
-                    level: int = DEFAULT_LEVEL,
+                    self, user: str = "", _pass: str = "", level: int = DEFAULT_LEVEL
                 ) -> None:
                     self.user = user
                     self._pass = _pass
@@ -260,9 +255,7 @@ class OutboundBean:
             publicKey: str = ""
             endpoint: str = ""
 
-            def __init__(
-                self, publicKey: str = "", endpoint: str = ""
-            ) -> None:
+            def __init__(self, publicKey: str = "", endpoint: str = "") -> None:
                 self.publicKey = publicKey
                 self.endpoint = endpoint
 
@@ -521,9 +514,7 @@ class OutboundBean:
             serviceName: str = ""
             multiMode: bool = None
 
-            def __init__(
-                self, serviceName: str = "", multiMode: bool = None
-            ) -> None:
+            def __init__(self, serviceName: str = "", multiMode: bool = None) -> None:
                 self.serviceName = serviceName
                 self.multiMode = multiMode
 
@@ -587,15 +578,11 @@ class OutboundBean:
                 if headerType == HTTP:
                     tcpSetting.header.type = HTTP
                     if host != "" or path != "":
-                        requestObj = (
-                            self.TcpSettingsBean.HeaderBean.RequestBean()
-                        )
+                        requestObj = self.TcpSettingsBean.HeaderBean.RequestBean()
                         requestObj.headers.Host = (
                             "" if host == None else host.split(",")
                         )
-                        requestObj.path = (
-                            "" if path == None else path.split(",")
-                        )
+                        requestObj.path = "" if path == None else path.split(",")
                         tcpSetting.header.request = requestObj
                         sni = (
                             requestObj.headers.Host[0]
@@ -609,9 +596,7 @@ class OutboundBean:
 
             elif self.network == "kcp":
                 kcpsetting = self.KcpSettingsBean()
-                kcpsetting.header.type = (
-                    headerType if headerType != None else "none"
-                )
+                kcpsetting.header.type = headerType if headerType != None else "none"
                 if seed == None or seed == "":
                     kcpsetting.seed = None
                 else:
@@ -635,21 +620,15 @@ class OutboundBean:
 
             elif self.network == "quic":
                 quicsetting = self.QuicSettingBean()
-                quicsetting.security = (
-                    quicSecurity if quicSecurity != None else "none"
-                )
+                quicsetting.security = quicSecurity if quicSecurity != None else "none"
                 quicsetting.key = key if key != None else ""
-                quicsetting.header.type = (
-                    headerType if headerType != None else "none"
-                )
+                quicsetting.header.type = headerType if headerType != None else "none"
                 self.quicSettings = quicsetting
 
             elif self.network == "grpc":
                 grpcSetting = self.GrpcSettingsBean()
                 grpcSetting.multiMode = mode == "multi"
-                grpcSetting.serviceName = (
-                    serviceName if serviceName != None else ""
-                )
+                grpcSetting.serviceName = serviceName if serviceName != None else ""
                 sni = host if host != None else ""
                 self.grpcSettings = grpcSetting
 
@@ -671,9 +650,7 @@ class OutboundBean:
                 allowInsecure=allowInsecure,
                 serverName=sni,
                 fingerprint=fingerprint,
-                alpn=(
-                    None if alpns == None or alpns == "" else alpns.split(",")
-                ),
+                alpn=None if alpns == None or alpns == "" else alpns.split(","),
                 publicKey=publicKey,
                 shortId=shortId,
                 spiderX=spiderX,
@@ -838,9 +815,7 @@ class FakednsBean:
     ipPool: str = "198.18.0.0/15"
     poolSize: int = 10000
 
-    def __init__(
-        self, ipPool: str = "198.18.0.0/15", poolSize: int = 10000
-    ) -> None:
+    def __init__(self, ipPool: str = "198.18.0.0/15", poolSize: int = 10000) -> None:
         self.ipPool = ipPool
         self.poolSize = poolSize
 
@@ -1165,9 +1140,7 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
         )
         _json = json.loads(b64decode, strict=False)
 
-        vmessQRCode_attributes = list(
-            VmessQRCode.__dict__["__annotations__"].keys()
-        )
+        vmessQRCode_attributes = list(VmessQRCode.__dict__["__annotations__"].keys())
         for key in list(_json.keys()):
             if key not in vmessQRCode_attributes:
                 del _json[key]
@@ -1179,19 +1152,13 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
         vnext = outbound.settings.vnext[0]
         vnext.address = vmessQRCode.add
         vnext.port = (
-            int(vmessQRCode.port)
-            if vmessQRCode.port.isdigit()
-            else DEFAULT_PORT
+            int(vmessQRCode.port) if vmessQRCode.port.isdigit() else DEFAULT_PORT
         )
 
         user = vnext.users[0]
         user.id = vmessQRCode.id
-        user.security = (
-            vmessQRCode.scy if vmessQRCode.scy != "" else DEFAULT_SECURITY
-        )
-        user.alterId = (
-            int(vmessQRCode.aid) if vmessQRCode.aid.isdigit() else None
-        )
+        user.security = vmessQRCode.scy if vmessQRCode.scy != "" else DEFAULT_SECURITY
+        user.alterId = int(vmessQRCode.aid) if vmessQRCode.aid.isdigit() else None
 
         streamSetting = outbound.streamSettings
 
@@ -1210,11 +1177,9 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
         fingerprint = (
             vmessQRCode.fp
             if vmessQRCode.fp
-            else (
-                streamSetting.tlsSettings.fingerprint
-                if streamSetting.tlsSettings
-                else None
-            )
+            else streamSetting.tlsSettings.fingerprint
+            if streamSetting.tlsSettings
+            else None
         )
 
         streamSetting.populateTlsSettings(
@@ -1264,11 +1229,9 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
         fingerprint = (
             netquery.get("fp")
             if "fp" in netquery
-            else (
-                streamSetting.tlsSettings.fingerprint
-                if streamSetting.tlsSettings
-                else None
-            )
+            else streamSetting.tlsSettings.fingerprint
+            if streamSetting.tlsSettings
+            else None
         )
 
         vnext = outbound.settings.vnext[0]
@@ -1294,11 +1257,7 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
         streamSetting.populateTlsSettings(
             streamSecurity=netquery.get("security", ""),
             allowInsecure=allowInsecure,
-            sni=(
-                sni
-                if netquery.get("sni", None) == None
-                else netquery.get("sni", None)
-            ),
+            sni=sni if netquery.get("sni", None) == None else netquery.get("sni", None),
             fingerprint=fingerprint,
             alpns=netquery.get("alpn", None),
             publicKey=netquery.get("pbk", ""),
@@ -1363,11 +1322,9 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
             streamSetting.populateTlsSettings(
                 streamSecurity=netquery.get("security", TLS),
                 allowInsecure=allowInsecure,
-                sni=(
-                    sni
-                    if netquery.get("sni", None) == None
-                    else netquery.get("sni", None)
-                ),
+                sni=sni
+                if netquery.get("sni", None) == None
+                else netquery.get("sni", None),
                 fingerprint=fingerprint,
                 alpns=netquery.get("alpn", None),
                 publicKey=None,
@@ -1414,9 +1371,7 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
     elif protocol == EConfigType.SHADOWSOCKS.protocolName:
         outbound = get_outbound_ss()
         if not try_resolve_resolve_sip002(raw_config, outbound):
-            result = raw_config.replace(
-                EConfigType.SHADOWSOCKS.protocolScheme, ""
-            )
+            result = raw_config.replace(EConfigType.SHADOWSOCKS.protocolScheme, "")
             index_split = result.find("#")
             if index_split > 0:
                 try:
@@ -1434,9 +1389,7 @@ def generateConfig(config: str, dns_list=["8.8.8.8"]):
                 )
                 + result[index_s:]
                 if index_s > 0
-                else base64.b64decode(result).decode(
-                    encoding="utf-8", errors="ignore"
-                )
+                else base64.b64decode(result).decode(encoding="utf-8", errors="ignore")
             )
 
             legacy_pattern = re.compile(r"^(.+?):(.*)@(.+):(\d+)\/?.*$")
