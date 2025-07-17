@@ -1,5 +1,5 @@
 # v2ray2json
-### Please support my repo with your star.
+### Please support my repo with your ⭐
 **v2ray2json** is a Python script for converting 'vmess://', 'vless://', 'trojan://', 'ss://', etc. subscription format to JSON config.
 <br/>
 The idea and Implementation of this project come from [cuynu/v2rayvn](https://gitlab.com/cuynu/v2rayvn) repository and also [V2rayConfig.kt](https://gitlab.com/cuynu/v2rayvn/-/blob/master/app/src/main/kotlin/com/v2ray/ang/dto/V2rayConfig.kt) file plays a key role.
