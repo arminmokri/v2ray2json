@@ -574,25 +574,25 @@ class OutboundBean:
             sni = ""
             self.network = transport
             if self.network == "tcp":
-                tcpSetting = self.TcpSettingsBean()
+                tcpSettings = self.TcpSettingsBean()
                 if headerType == HTTP:
-                    tcpSetting.header.type = HTTP
+                    tcpSettings.header.type = HTTP
                     if host != "" or path != "":
                         requestObj = self.TcpSettingsBean.HeaderBean.RequestBean()
                         requestObj.headers.Host = (
                             "" if host == None else host.split(",")
                         )
                         requestObj.path = "" if path == None else path.split(",")
-                        tcpSetting.header.request = requestObj
+                        tcpSettings.header.request = requestObj
                         sni = (
                             requestObj.headers.Host[0]
                             if len(requestObj.headers.Host) > 0
                             else sni
                         )
                 else:
-                    tcpSetting.header.type = "none"
+                    tcpSettings.header.type = "none"
                     sni = host if host != "" else ""
-                self.tcpSetting = tcpSetting
+                self.tcpSettings = tcpSettings
 
             elif self.network == "kcp":
                 kcpsetting = self.KcpSettingsBean()
