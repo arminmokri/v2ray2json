@@ -592,7 +592,7 @@ class OutboundBean:
                 else:
                     tcpSetting.header.type = "none"
                     sni = host if host != "" else ""
-                self.tcpSetting = tcpSetting
+                self.tcpSettings = tcpSetting
 
             elif self.network == "kcp":
                 kcpsetting = self.KcpSettingsBean()
